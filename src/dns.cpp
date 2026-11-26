@@ -1,4 +1,4 @@
-#include <winport.h>
+#include <ajar.h>
 
 std::string domaintoip(std::string domain) {
     addrinfo hints{};

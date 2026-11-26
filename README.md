@@ -1,4 +1,4 @@
-# winport
+# ajar
 
 A lightweight TCP port checker written in C++ using Windows Winsock, featuring DNS resolution and interactive port selection.
 
@@ -18,20 +18,20 @@ A lightweight TCP port checker written in C++ using Windows Winsock, featuring D
 
 ### Using g++ (MinGW)
 ```bash
-g++ main.cpp -o winport.exe -lws2_32
+g++ main.cpp dns.cpp -o ajar.exe -lws2_32
 ```
 
 ### Using MSVC (Developer Command Prompt)
 ```cmd
-cl main.cpp /Fe:winport.exe ws2_32.lib
+cl main.cpp dns.cpp /Fe:ajar.exe ws2_32.lib
 ```
 
 ## Usage
 
-Run the compiled executable from your terminal or double-click `winport.exe`:
+Run the compiled executable from your terminal or double-click `ajar.exe`:
 
 ```cmd
-winport.exe
+ajar.exe
 ```
 
 Follow the on-screen prompts to enter your target hostname/IP address and select the port(s) you wish to check.

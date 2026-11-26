@@ -1,6 +1,6 @@
 #define NOMINMAX
 
-#include <winport.h>
+#include <ajar.h>
 
 int main() {
     WSADATA wsa_data{};
@@ -13,115 +13,137 @@ int main() {
     std::string server_input;
     std::string ip_result;
     int port_input{};
-
     while (true) {
-        std::cout << "Enter domain/IP address: ";
+        while (true) {
+            std::cout << "Enter domain/IP address: ";
 
-        if (!(std::cin >> server_input)) {
-            WSACleanup();
-            return 1;
-        }
-
-        std::cout << "Enter port number: ";
-
-        if (!(std::cin >> port_input)) {
-            if (std::cin.eof()) {
+            if (!(std::cin >> server_input)) {
                 WSACleanup();
                 return 1;
             }
 
-            std::cin.clear();
-            std::cin.ignore(
-                std::numeric_limits<std::streamsize>::max(),
-                '\n'
-            );
+            std::cout << "Enter port number: ";
 
-            std::cout << "Invalid input.\n";
-            continue;
-        }
+            if (!(std::cin >> port_input)) {
+                if (std::cin.eof()) {
+                    WSACleanup();
+                    return 1;
+                }
 
-        if (port_input < 1 || port_input > 65535) {
-            std::cout << "Invalid port number.\n";
-            continue;
-        }
+                std::cin.clear();
+                std::cin.ignore(
+                    std::numeric_limits<std::streamsize>::max(),
+                    '\n'
+                );
 
-        in_addr address{};
-
-        int result_IPcheck = inet_pton(
-            AF_INET,
-            server_input.c_str(),
-            &address
-        );
-
-        if (result_IPcheck == 1) {
-            std::cout << "Valid IPv4 address.\n";
-            ip_result = server_input;
-            break;
-
-        } else if (result_IPcheck == 0) {
-            std::cout << "Attempting domain resolution...\n";
-
-            ip_result = domaintoip(server_input);
-
-            if (ip_result.empty()) {
-                std::cout << "Resolution failed. Try again.\n";
+                std::cout << "Invalid input.\n";
                 continue;
             }
 
-            break;
+            if (port_input < 1 || port_input > 65535) {
+                std::cout << "Invalid port number.\n";
+                continue;
+            }
 
-        } else {
-            std::cout << "An error occurred.\n";
+            in_addr address{};
+
+            int result_IPcheck = inet_pton(
+                AF_INET,
+                server_input.c_str(),
+                &address
+            );
+
+            if (result_IPcheck == 1) {
+                std::cout << "Valid IPv4 address.\n";
+                ip_result = server_input;
+                break;
+
+            } else if (result_IPcheck == 0) {
+                std::cout << "Attempting domain resolution...\n";
+
+                ip_result = domaintoip(server_input);
+
+                if (ip_result.empty()) {
+                    std::cout << "Resolution failed. Try again.\n";
+                    continue;
+                }
+
+                break;
+
+            } else {
+                std::cout << "An error occurred.\n";
+                WSACleanup();
+                return 1;
+            }
+        }
+
+        std::cout << "\nResolved IP: " << ip_result << '\n';
+        std::cout << "Selected port: " << port_input << '\n';
+        std::cout << "Are you sure you want to proceed? (y/n): ";
+
+        char confirm;
+        std::cin >> confirm;
+
+        if (confirm == 'n' || confirm == 'N') {
+            std::cout << "Operation cancelled.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            
+        }else if (confirm != 'y' && confirm != 'Y') {
+            std::cout << "Invalid input. Exiting program.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
             WSACleanup();
             return 1;
         }
-    }
+        auto start_time = std::chrono::high_resolution_clock::now();
+        SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-    std::cout << "\nResolved IP: " << ip_result << '\n';
-    std::cout << "Selected port: " << port_input << '\n';
-    std::cout << "Are you sure you want to proceed? (y/n): ";
-
-    char confirm;
-    std::cin >> confirm;
-
-    if (confirm != 'y' && confirm != 'Y') {
-        std::cout << "Operation cancelled.\n";
+        if (sock == INVALID_SOCKET) {
+        std::cout << "Socket creation failed.\n";
         WSACleanup();
-        return 0;
-    }
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        return 1;
+        }
+        sockaddr_in target{};
 
-    if (sock == INVALID_SOCKET) {
-    std::cout << "Socket creation failed.\n";
-    WSACleanup();
-    return 1;
-    }
-    sockaddr_in target{};
+        target.sin_family = AF_INET;
+        target.sin_port = htons(port_input);
 
-    target.sin_family = AF_INET;
-    target.sin_port = htons(port_input);
+        inet_pton(AF_INET, ip_result.c_str(), &target.sin_addr);
 
-    inet_pton(AF_INET, ip_result.c_str(), &target.sin_addr);
+        int connection_result = connect(
+        sock,
+        reinterpret_cast<sockaddr*>(&target),
+        sizeof(target)
+        );
 
-    int connection_result = connect(
-    sock,
-    reinterpret_cast<sockaddr*>(&target),
-    sizeof(target)
-    );
+        if (connection_result == 0) {
+        std::cout << "Port is open.\n";
+        } else {
+            std::cout << "Connection failed.\n";
+        }
+        closesocket(sock);
+        auto end_time = std::chrono::high_resolution_clock::now();
 
-    if (connection_result == 0) {
-    std::cout << "Port is open.\n";
-    } else {
-        std::cout << "Connection failed.\n";
-    }
-    std::cout << "Press Backspace to exit...";
-    while (true) {
-        if (_getch() == 8) {
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+        anotherone:
+
+        std::cout << "Time elapsed for tcp check: " << duration.count() << " ms\n";
+        std::cout << "do you want to check another port? (y/n): ";
+        char check_another;
+        std::cin >> check_another;
+        if (check_another == 'y' || check_another == 'Y') {
+            //continue
+        } else if (check_another == 'n' || check_another == 'N') {
+            std::cout << "Exiting program.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            break;
+        }else {
+            std::cout << "Invalid input. Exiting program.\n";
+            std::this_thread::sleep_for(std::chrono::seconds(2));
             break;
         }
     }
-    
-    closesocket(sock);
+
     WSACleanup();
     return 0;
 }
