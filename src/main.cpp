@@ -86,11 +86,24 @@ int main() {
 
         if (confirm == 'n' || confirm == 'N') {
             std::cout << "Operation cancelled.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            std::cout << "Do you want to check another port? (y/n): ";
+            char check_another;
+            std::cin >> check_another;
+            if (check_another == 'y' || check_another == 'Y') {
+                continue;
+            } else if (check_another == 'n' || check_another == 'N') {
+                std::cout << "Exiting program.\n";
+                wait(2);
+                break;
+            } else {
+                std::cout << "Invalid input. Exiting program.\n";
+                wait(2);
+                break;
+            }
             
         }else if (confirm != 'y' && confirm != 'Y') {
             std::cout << "Invalid input. Exiting program.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            wait(2);
             WSACleanup();
             return 1;
         }
@@ -125,8 +138,6 @@ int main() {
 
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
 
-        anotherone:
-
         std::cout << "Time elapsed for tcp check: " << duration.count() << " ms\n";
         std::cout << "do you want to check another port? (y/n): ";
         char check_another;
@@ -135,15 +146,19 @@ int main() {
             //continue
         } else if (check_another == 'n' || check_another == 'N') {
             std::cout << "Exiting program.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            wait(2);
             break;
         }else {
             std::cout << "Invalid input. Exiting program.\n";
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            wait(2);
             break;
         }
     }
 
     WSACleanup();
     return 0;
+}
+
+void wait(int seconds) {
+    std::this_thread::sleep_for(std::chrono::seconds(seconds));
 }

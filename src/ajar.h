@@ -10,4 +10,5 @@
 #include <thread>
 
 std::string domaintoip(std::string domain);
+void wait(int seconds);
 
