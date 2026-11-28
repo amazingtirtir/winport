@@ -107,38 +107,7 @@ int main() {
             WSACleanup();
             return 1;
         }
-        auto start_time = std::chrono::high_resolution_clock::now();
-        SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-        if (sock == INVALID_SOCKET) {
-        std::cout << "Socket creation failed.\n";
-        WSACleanup();
-        return 1;
-        }
-        sockaddr_in target{};
-
-        target.sin_family = AF_INET;
-        target.sin_port = htons(port_input);
-
-        inet_pton(AF_INET, ip_result.c_str(), &target.sin_addr);
-
-        int connection_result = connect(
-        sock,
-        reinterpret_cast<sockaddr*>(&target),
-        sizeof(target)
-        );
-
-        if (connection_result == 0) {
-        std::cout << "Port is open.\n";
-        } else {
-            std::cout << "Connection failed.\n";
-        }
-        closesocket(sock);
-        auto end_time = std::chrono::high_resolution_clock::now();
-
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-
-        std::cout << "Time elapsed for tcp check: " << duration.count() << " ms\n";
+        check_port(ip_result, port_input);
         std::cout << "do you want to check another port? (y/n): ";
         char check_another;
         std::cin >> check_another;

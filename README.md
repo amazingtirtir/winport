@@ -18,12 +18,12 @@ A lightweight TCP port checker written in C++ using Windows Winsock, featuring D
 
 ### Using g++ (MinGW)
 ```bash
-g++ main.cpp dns.cpp -o ajar.exe -lws2_32
+g++ main.cpp dns.cpp "port checker.cpp" -I. -o ajar.exe -lws2_32
 ```
 
 ### Using MSVC (Developer Command Prompt)
 ```cmd
-cl main.cpp dns.cpp /Fe:ajar.exe ws2_32.lib
+cl main.cpp dns.cpp "port checker.cpp" /I. /Fe:ajar.exe ws2_32.lib
 ```
 
 ## Usage
